@@ -4,11 +4,14 @@ import bcrypt from "bcrypt";
 // const cloudinary = require('../utils/cloudinary');
 // import cloudinary from '../cloudinary.js'
 import cloudinary from "cloudinary";
+import dotenv from 'dotenv'
+dotenv.config()
+
 
 cloudinary.config({ 
-  cloud_name: "dor3vskgy", 
-  api_key: "968286853185925", 
-  api_secret: "0iL6Gi9yiDJwGNyk5u7JntzRBkk" 
+  cloud_name: process.env.CLOUD_NAME, 
+  api_key:  process.env.API_KEY, 
+  api_secret:  process.env.API_SECRET 
 });
 
 export const getUser = async (req, res) => {
