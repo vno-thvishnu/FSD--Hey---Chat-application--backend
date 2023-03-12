@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose =require ("mongoose")
 
 const ChatSchema = mongoose.Schema({
     members:{
@@ -11,4 +11,4 @@ const ChatSchema = mongoose.Schema({
 })
 
 const ChatModel= mongoose.model("chat",ChatSchema)
-export default ChatModel
+module.exports = ChatModel

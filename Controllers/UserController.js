@@ -1,20 +1,16 @@
-import UserModel from "../Models/UserModel.js";
-import bcrypt from "bcrypt";
-// const cloudinary = require('cloudinary').v2;
-// const cloudinary = require('../utils/cloudinary');
-// import cloudinary from '../cloudinary.js'
-import cloudinary from "cloudinary";
-import dotenv from 'dotenv'
-dotenv.config()
+const UserModel = require("../Models/UserModel.js");
+const bcrypt = require("bcrypt");
+const cloudinary = require("cloudinary");
+const dotenv = require("dotenv");
+dotenv.config();
 
-
-cloudinary.config({ 
-  cloud_name: process.env.CLOUD_NAME, 
-  api_key:  process.env.API_KEY, 
-  api_secret:  process.env.API_SECRET 
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
 });
 
-export const getUser = async (req, res) => {
+exports.getUser = async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -23,7 +19,7 @@ export const getUser = async (req, res) => {
     if (user) {
       const { password, ...otherDetails } = user._doc;
 
-      res.status(200).json({otherDetails,message:"finded"});
+      res.status(200).json({ otherDetails, message: "finded" });
     } else {
       res.status(404).json("No such user Exists");
     }
@@ -32,22 +28,20 @@ export const getUser = async (req, res) => {
   }
 };
 
-
-export const getAllUsers = async (req, res) => {
-
+exports.getAllUsers = async (req, res) => {
   try {
     let users = await UserModel.find();
-    users = users.map((user)=>{
-      const {password, ...otherDetails} = user._doc
-      return otherDetails
-    })
+    users = users.map((user) => {
+      const { password, ...otherDetails } = user._doc;
+      return otherDetails;
+    });
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json(error);
   }
 };
 
-export const updateUser = async (req, res) => {
+exports.updateUser = async (req, res) => {
   const id = req.params.id;
   const { currentUserId, currentUserAdminStatus, password } = req.body;
   if (id === currentUserId || currentUserAdminStatus) {
@@ -61,11 +55,11 @@ export const updateUser = async (req, res) => {
         new: true,
       });
 
-  if(user){
-    const { password, ...otherDetails } = user._doc;
+      if (user) {
+        const { password, ...otherDetails } = user._doc;
 
-    res.status(200).json({otherDetails});
-  }
+        res.status(200).json({ otherDetails });
+      }
     } catch (error) {
       res.status(500).json(error);
     }
@@ -76,7 +70,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
-export const deleteUser = async (req, res) => {
+exports.deleteUser = async (req, res) => {
   const id = req.params.id;
   const { currentUserId, currentUserAdminStatus } = req.body;
   if (id === currentUserId || currentUserAdminStatus) {
@@ -91,7 +85,7 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-export const followUser = async (req, res) => {
+exports.followUser = async (req, res) => {
   const id = req.params.id;
   const { currentUserId } = req.body;
 
@@ -114,59 +108,44 @@ export const followUser = async (req, res) => {
   }
 };
 
-export const unFollowUser = async (req, res) => {
-    const id = req.params.id;
-    const { currentUserId } = req.body;
-  
-    if (currentUserId === id) {
-      res.status(200).json("Action forbidden");
-    } else {
-      try {
-        const followUser = await UserModel.findById(id);
-        const followingUser = await UserModel.findById(currentUserId);
-        if (followUser.followers.includes(currentUserId)) {
-          await followUser.updateOne({ $pull: { followers: currentUserId } });
-          await followingUser.updateOne({ $pull: { following: id } });
-          res.status(200).json("User unfollowed!");
-        } else {
-          res.status(200).json("User is not followed by you");
-        }
-      } catch (error) {
-        res.status(500).json(error);
-      }
-    }
-  };
-
-
-export const removeImages=async(req,res)=>{
-    try {
+exports.unFollowUser = async (req, res) => {
   const id = req.params.id;
+  const { currentUserId } = req.body;
 
-      const {profileImage_publicId,coverImage_publicId}=req.body
-
-      if(profileImage_publicId ){
-
-//         const user = await UserModel.findByIdAndUpdate(id, req.body, {
-//           new: true,
-//         });
-// if(user){
-  // const myArray = profileImage_publicId.split("/");
-  // console.log(myArray)
-  // console.log(myArray[1])
-
-  const dlt=await cloudinary.uploader.destroy(profileImage_publicId);
-  res.status(200).json(dlt);
-
-// }
+  if (currentUserId === id) {
+    res.status(200).json("Action forbidden");
+  } else {
+    try {
+      const followUser = await UserModel.findById(id);
+      const followingUser = await UserModel.findById(currentUserId);
+      if (followUser.followers.includes(currentUserId)) {
+        await followUser.updateOne({ $pull: { followers: currentUserId } });
+        await followingUser.updateOne({ $pull: { following: id } });
+        res.status(200).json("User unfollowed!");
+      } else {
+        res.status(200).json("User is not followed by you");
       }
-      if(coverImage_publicId ){
-        const dlt=await cloudinary.uploader.destroy(coverImage_publicId);
-        res.status(200).json(dlt);
-
-      }
-      
     } catch (error) {
       res.status(500).json(error);
-      
     }
   }
+};
+
+exports.removeImages = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const { profileImage_publicId, coverImage_publicId } = req.body;
+
+    if (profileImage_publicId) {
+      const dlt = await cloudinary.uploader.destroy(profileImage_publicId);
+      res.status(200).json(dlt);
+    }
+    if (coverImage_publicId) {
+      const dlt = await cloudinary.uploader.destroy(coverImage_publicId);
+      res.status(200).json(dlt);
+    }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
